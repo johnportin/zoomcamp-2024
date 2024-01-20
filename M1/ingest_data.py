@@ -33,6 +33,11 @@ def main(params):
         chunk_df = pa.Table.from_batches([batch]).to_pandas(split_blocks=True, self_destruct=True)
         chunk_df.to_sql(name="yellow_taxi_data", con=engine, if_exists="append")
 
+    # Ingest taxi zones data
+    taxi_zones_url = "https://d37ci6vzurychx.cloudfront.net/misc/taxi+_zone_lookup.csv"
+    taxi_zones_df = pd.read_csv(taxi_zones_url)
+    taxi_zones_df.to_sql(name="zones", con=engine, if_exists="replace")
+
 
 
 if __name__ == "__main__":
