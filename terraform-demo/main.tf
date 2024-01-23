@@ -8,14 +8,14 @@ terraform {
 }
 
 provider "google" {
-  credentials = "./keys/creds.json"
-  project     = "ml-zoomcamp-402900"
+  credentials = file(var.credentials)
+  project     = var.project
   region      = "us-central1"
 }
 
 resource "google_storage_bucket" "demo-bucket" {
-  name          = "demo-bucket-402900"
-  location      = "US"
+  name          = var.gcp_bucket_name
+  location      = var.location
   force_destroy = true
 
   lifecycle_rule {
@@ -26,4 +26,10 @@ resource "google_storage_bucket" "demo-bucket" {
       type = "AbortIncompleteMultipartUpload"
     }
   }
+}
+
+resource "google_bigquery_dataset" "demo_dataset" {
+  dataset_id                 = var.bq_dataset_name
+  location                   = var.location
+  delete_contents_on_destroy = true
 }

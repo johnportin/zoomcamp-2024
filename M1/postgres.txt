@@ -57,3 +57,16 @@ docker run -it \
         --db=ny_taxi \
         --table_name=yellow_taxi_data \
         --url="https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet"
+
+
+!Working with homework!
+docker run -it \
+    --network=m1_default \
+    taxi_ingest:v001 \
+        --user=root \
+        --password=root \
+        --host=m1-pgdatabase-1 \
+        --port=5432 \
+        --db=ny_taxi \
+        --table_name=yellow_taxi_data \
+        --url="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/green/green_tripdata_2019-09.csv.gz"

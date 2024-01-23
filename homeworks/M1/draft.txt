@@ -1,0 +1,147 @@
+1. 
+    --rm: remove the container after it exits.
+
+2. 
+    docker run -it python:3.9 bash
+    0.42.0
+
+3. 
+    docker run -it \
+    --network=m1_default \
+    hw_ingest \
+        --user=root \
+        --password=root \
+        --host=m1-pgdatabase-1 \
+        --port=5432 \
+        --db=ny_taxi \
+        --table_name=yellow_taxi_data \
+        --url="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/green/green_tripdata_2019-09.csv.gz"
+
+select 
+	count(*)
+from 
+	public.yellow_taxi_data
+where
+	lpep_pickup_datetime > '2019-09-18 0:00:00'
+	and
+	lpep_dropoff_datetime < '2019-09-19 0:00:00';
+		
+ - 15611
+
+ 4. select trip_distance, lpep_pickup_datetime
+    from public.yellow_taxi_data
+    where trip_distance in
+        (select max(trip_distance)
+            from 
+        public.yellow_taxi_data)
+
+    trip_distance = 341.64, pickup date = 2019-09-26
+
+5. Brooklyn, Manhattan, Queens
+
+    SELECT SUM(t.total_amount), t.p
+    FROM (
+        SELECT d.total_amount, z."Borough" as p
+        FROM yellow_taxi_data d left join zones z
+        ON d."PULocationID" = z."LocationID"
+        WHERE d.lpep_pickup_datetime between  '2019-09-18' and  '2019-09-19' 
+    ) as t
+    GROUP BY t.p
+ORDER BY sum DESC;
+
+"sum"	"p"
+96333.23999999894	"Brooklyn"
+92271.29999999999	"Manhattan"
+78891.00999999882	"Queens"
+32830.09000000008	"Bronx"
+728.75	"Unknown"
+342.59000000000003	"Staten Island"
+
+6. 
+    SELECT "PULocationID", tip_amount, "DOLocationID" FROM public.yellow_taxi_data 
+where "PULocationID" = 7
+order by tip_amount desc
+LIMIT 10
+
+7	62.31	132
+7	30	260
+7	28	137
+7	25	264
+7	20	7
+7	20	239
+7	19.97	260
+7	19.28	265
+7	19.01	1
+7	18.14	245
+
+JFK Airport
+
+7. 
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # google_bigquery_dataset.demo_dataset will be created
+  + resource "google_bigquery_dataset" "demo_dataset" {
+      + creation_time              = (known after apply)
+      + dataset_id                 = "ml_zoomcamp_402900_hw1_dataset"
+      + default_collation          = (known after apply)
+      + delete_contents_on_destroy = false
+      + effective_labels           = (known after apply)
+      + etag                       = (known after apply)
+      + id                         = (known after apply)
+      + is_case_insensitive        = (known after apply)
+      + last_modified_time         = (known after apply)
+      + location                   = "US"
+      + max_time_travel_hours      = (known after apply)
+      + project                    = "ml-zoomcamp-402900"
+      + self_link                  = (known after apply)
+      + storage_billing_model      = (known after apply)
+      + terraform_labels           = (known after apply)
+    }
+
+  # google_storage_bucket.demo-bucket will be created
+  + resource "google_storage_bucket" "demo-bucket" {
+      + effective_labels            = (known after apply)
+      + force_destroy               = true
+      + id                          = (known after apply)
+      + location                    = "US"
+      + name                        = "ml_zoomcamp_402900_hw1_bucket"
+      + project                     = (known after apply)
+      + public_access_prevention    = (known after apply)
+      + self_link                   = (known after apply)
+      + storage_class               = "STANDARD"
+      + terraform_labels            = (known after apply)
+      + uniform_bucket_level_access = (known after apply)
+      + url                         = (known after apply)
+
+      + lifecycle_rule {
+          + action {
+              + type = "AbortIncompleteMultipartUpload"
+            }
+          + condition {
+              + age                   = 1
+              + matches_prefix        = []
+              + matches_storage_class = []
+              + matches_suffix        = []
+              + with_state            = (known after apply)
+            }
+        }
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+google_bigquery_dataset.demo_dataset: Creating...
+google_storage_bucket.demo-bucket: Creating...
+google_bigquery_dataset.demo_dataset: Creation complete after 0s [id=projects/ml-zoomcamp-402900/datasets/ml_zoomcamp_402900_hw1_dataset]
+google_storage_bucket.demo-bucket: Creation complete after 1s [id=ml_zoomcamp_402900_hw1_bucket]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.

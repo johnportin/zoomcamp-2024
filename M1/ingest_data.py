@@ -19,19 +19,31 @@ def main(params):
     chunk_size = 100000
 
     # download the Parquet file
-    outputFile = "output.parquet"
+    # outputFile = "output.parquet"
+    outputFile = "data.csv.gz"
     os.system(f"wget {url} -O {outputFile}")
 
     engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')
     engine.connect()
-    parquet_file = pq.ParquetFile(outputFile)
+    # parquet_file = pq.ParquetFile(outputFile)
 
-    count = 0
-    for batch in parquet_file.iter_batches(batch_size=chunk_size):
-        count += 1
-        print(f"Writing chunk {count} of size {len(batch)}")
-        chunk_df = pa.Table.from_batches([batch]).to_pandas(split_blocks=True, self_destruct=True)
-        chunk_df.to_sql(name="yellow_taxi_data", con=engine, if_exists="append")
+    df_iter = pd.read_csv(outputFile, compression='gzip', low_memory=False, chunksize=chunk_size)
+    chunk = 1
+    while True:
+        df = next(df_iter)
+        df.lpep_pickup_datetime = pd.to_datetime(df.lpep_pickup_datetime)
+        df.lpep_dropoff_datetime = pd.to_datetime(df.lpep_dropoff_datetime)
+        df.to_sql(name="yellow_taxi_data", con=engine, if_exists="append")
+        print(f"writing chunk {chunk}")
+        chunk += 1
+
+
+    # count = 0
+    # for batch in parquet_file.iter_batches(batch_size=chunk_size):
+    #     count += 1
+    #     print(f"Writing chunk {count} of size {len(batch)}")
+    #     chunk_df = pa.Table.from_batches([batch]).to_pandas(split_blocks=True, self_destruct=True)
+    #     chunk_df.to_sql(name="yellow_taxi_data", con=engine, if_exists="append")
 
     # Ingest taxi zones data
     taxi_zones_url = "https://d37ci6vzurychx.cloudfront.net/misc/taxi+_zone_lookup.csv"
