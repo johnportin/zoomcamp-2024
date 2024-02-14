@@ -1,0 +1,61 @@
+  -- My Homework 3 Queries
+  -- Q1:
+  -- A: 840402
+SELECT
+  COUNT(`VendorID`)
+FROM
+  ny_taxi.green_taxi;
+  -- Q2:
+  -- A: 0MB External, 6.41 Materialized
+  -- External
+SELECT
+  COUNT(DISTINCT `PULocationID`)
+FROM
+  `ny_taxi.external_green_taxi`;
+  -- Materialized
+SELECT
+  COUNT(DISTINCT `PULocationID`)
+FROM
+  `ny_taxi.green_taxi`;
+  -- Q3: How many records have fare_amount  of 0?
+  -- A: 1622
+SELECT
+  COUNT(fare_amount)
+FROM
+  ny_taxi.green_taxi
+WHERE
+  fare_amount = 0;
+  -- Q4:
+CREATE TABLE
+  ny_taxi.part_green_taxi
+PARTITION BY
+  lpep_pickup_datetime
+CLUSTER BY
+  PULocationID AS (
+  SELECT
+    *
+  FROM
+    ny_taxi.green_taxi );
+  -- Q5: retrieve distinct PULocationID between lpep_pickup_datetime 06/01/2022 and 06/30/2022 (inclusive)
+  -- Materialized Table: 12.82 MB
+SELECT
+  PULocationID
+FROM
+  ny_taxi.green_taxi
+WHERE
+  ( lpep_pickup_datetime >= '2022-06-01'
+    AND lpep_pickup_datetime <= '2022-06-30' );
+  -- Partitioned Table: 1.12 MB
+SELECT
+  PULocationID
+FROM
+  ny_taxi.part_green_taxi
+WHERE
+  ( lpep_pickup_datetime >= '2022-06-01'
+    AND lpep_pickup_datetime <= '2022-06-30' );
+  -- Q6: Where is the data stored in the External Table you created?
+  -- :GCP Bucket
+  -- Q7: It is best practice in Big Query to always cluster your data.
+  -- A: False. Clustering, and partitioning, and most relevant when you have larger data sets. It inclurs an overhead, and is not always beneficial on smaller data sets.
+  -- Q8: Write a select count(*) query from the materialized table. How many blutes does it estimate will be read? Why?
+  -- A: 0 b. BigQuery does not have much information about external tables, so it is unable to estimate how many bytes will be read.
